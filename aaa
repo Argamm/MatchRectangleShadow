@@ -1,0 +1,94 @@
+package com.wachanga.pregnancy.onboardingV2.step.journeyResults.ui
+
+import android.annotation.SuppressLint
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BlurMaskFilter
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.RectF
+import android.util.AttributeSet
+import android.view.View
+import androidx.core.content.ContextCompat
+import com.wachanga.pregnancy.R
+
+class MatchRectangleShadow(
+    context: Context?,
+    attrs: AttributeSet?
+) : View(context, attrs) {
+
+    private val shadowPaint = Paint().apply {
+        color =
+            context?.let {
+                ContextCompat.getColor(
+                    it,
+                    R.color.c_86_purple
+                )
+            }!!
+    }
+
+    private val rectPaint = Paint().apply {
+        context?.let {
+            color = ContextCompat.getColor(it, R.color.transparent)
+            isAntiAlias = true
+            strokeCap = Paint.Cap.ROUND
+        }
+    }
+
+    private lateinit var shadowBitmap: Bitmap
+    private lateinit var shadowCanvas: Canvas
+
+    init {
+        setLayerType(LAYER_TYPE_SOFTWARE, null)
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        createShadowBitmap(w, h)
+    }
+
+    private fun createShadowBitmap(width: Int, height: Int) {
+        shadowBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ALPHA_8)
+        shadowCanvas = Canvas(shadowBitmap)
+
+        val paint = Paint().apply {
+            isAntiAlias = true
+            maskFilter = BlurMaskFilter(RADIUS_OF_SHADOW, BlurMaskFilter.Blur.NORMAL)
+        }
+
+        val rectF = RectF(
+            RADIUS_OF_SHADOW,
+            RADIUS_OF_SHADOW,
+            width - RADIUS_OF_SHADOW,
+            height - RADIUS_OF_SHADOW
+        )
+
+        shadowCanvas.drawRect(rectF, paint)
+    }
+
+    @SuppressLint("DrawAllocation")
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+        canvas.drawBitmap(shadowBitmap, 0f, 0f, shadowPaint)
+
+        val rectF = RectF(
+            RADIUS_OF_SHADOW,
+            RADIUS_OF_SHADOW,
+            width - RADIUS_OF_SHADOW,
+            height - RADIUS_OF_SHADOW
+        )
+        canvas.drawRect(rectF, rectPaint)
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        val width = MeasureSpec.getSize(widthMeasureSpec)
+        val height = (HEIGHT_DP * resources.displayMetrics.density).toInt()
+        setMeasuredDimension(width, height)
+    }
+
+    companion object {
+        const val RADIUS_OF_SHADOW = 50f
+        const val HEIGHT_DP = 150
+    }
+}
